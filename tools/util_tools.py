@@ -1,5 +1,3 @@
-
-
 # region dpp_s
 def is_ak_daily_updated():
     
@@ -7,7 +5,5 @@ def is_ak_daily_updated():
 
 
 # endregion dpp_s
-
-
 
 
