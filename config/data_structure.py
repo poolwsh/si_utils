@@ -24,6 +24,9 @@ i_indicator_dict = {
     'ma200':'real',
 }
 
+cache_name_dict = {
+    'dc_ak_s_daily_realtime':'dc_ak@s_daily@realtime',
+}
 
 
 
