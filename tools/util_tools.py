@@ -8,6 +8,7 @@ import orjson
 from ff_utils.tools import util_tools as ut
 from ff_utils.data_accessing.db import PGEngine, table_name_dict
 from si_utils.config import base_config as con
+from si_utils.config.data_structure import cache_name_dict
 from si_utils.tools import cache
 
 # region datetime
@@ -15,6 +16,13 @@ def get_ak_td_array(end_date=ut.get_today_str()):
     td_df=PGEngine.table2df(table_name_dict['dc_ak_trade_date'])
     td_array = td_df['trade_date']
     return td_array[td_array<=end_date]
+
+def get_cached_ak_s_df_realtime():
+    rt_df_json = cache.dc_cache_get_value(cache_name_dict['dc_ak_s_daily_realtime'])
+    if rt_df_json is not None:
+        return pd.DataFrame(orjson.loads(rt_df_json))
+    else:
+        return None
 
 # endregion datetime
 
@@ -26,7 +34,8 @@ def get_cached_ak_s_daily():
     ak_daily_df = pd.DataFrame(ak_daily_values)
     return ak_daily_df
 
-
+def get_ak_s_realtime():
+    cache.dc_cache_get_value(cache_name_dict['dc_ak_s_daily_realtime'])
 # endregion dpp_s
 
 # region indicators
