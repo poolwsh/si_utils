@@ -28,8 +28,8 @@ def get_cached_ak_s_df_realtime():
 
 
 # region dpp_s
-def get_cached_ak_s_daily():
-    ak_daily_keys = [x for x in cache.dc_cache.keys() if x.startswith('dc_ak@') and x.endswith('@daily')]
+def get_cached_ak_s_dwm(period='daily'):
+    ak_daily_keys = [x for x in cache.dc_cache.keys() if x.startswith('dc_ak@') and x.endswith('@'+period)]
     ak_daily_values = list(map(lambda x:orjson.loads(orjson.loads(cache.dc_cache_get_value(x))['data_value']), ak_daily_keys))
     ak_daily_df = pd.DataFrame(ak_daily_values)
     return ak_daily_df
