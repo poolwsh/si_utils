@@ -1,6 +1,11 @@
 
 
+import os
 
+
+ak_col_data_file_root = '/data/workspace/data/ak/col_data'
+if not os.path.exists(ak_col_data_file_root):
+    os.makedirs(ak_col_data_file_root)
 
 sctr_params = {
     'l_ema_param': 200,              'l_ema_ratio': 0.3,
