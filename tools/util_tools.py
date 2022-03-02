@@ -141,6 +141,10 @@ def get_ak_pa_col_df(col_name, s_code_list=None):
             last_valid_td = get_last_valid_td()
             logger.debug('last_valid_td = {0}'.format(last_valid_td))
             con1 = len(missing_list) > 0
+            logger.debug(r_col_df[exist_list])
+            logger.debug(r_col_df[exist_list].loc[[last_valid_td]])
+            logger.debug(r_col_df[exist_list].loc[[last_valid_td]].isna())
+            logger.debug(r_col_df[exist_list].loc[[last_valid_td]].isna().any(axis=1))
             con2 = last_valid_td in r_col_df.index and r_col_df[exist_list].loc[[last_valid_td]].isna().any(axis=1)
             if  con1 or con2:
                 logger.warning('missing {0} col data in file {1}.'.format(missing_list, col_file_name))
