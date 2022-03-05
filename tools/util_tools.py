@@ -7,12 +7,12 @@ import orjson
 from datetime import datetime, timedelta
 
 from si_utils.config import base_config as con
-from si_utils.config.data_structure import cache_name_dict
 from si_utils.tools import cache
 
 
 # from ff_utils.tools import util_tools as ut
 from ff_utils.tools import util_tools as ff_ut
+from ff_utils.config.base_config import cache_name_dict
 from ff_utils.data_accessing import data_api
 from ff_utils.data_accessing.db import PGEngine, table_name_dict
 from ff_utils.tools.logger import LogHelper
@@ -125,6 +125,38 @@ def get_last_valid_td(hour_f=15.5):
     else:
         return td_array[-2]
 
+def update_all_local_pa_col_file():
+    cached_ak_daily_df = get_cached_ak_s_dwm()
+    del cached_ak_daily_df['cache_time']
+    c_ak_df_column_list = list(cached_ak_daily_df.columns)
+    c_ak_df_column_list.remove('s_code')
+    c_ak_df_column_list.remove('td')
+    s_code_dict = grouped_s_code(cached_ak_daily_df['s_code'])
+    chached_ak_daily_col_df_dict = {}
+    for col_name in c_ak_df_column_list:
+        chached_ak_daily_col_df_dict[col_name] = get_pa_columnar_df(cached_ak_daily_df, col_name)
+    for file_name in os.listdir(con.ak_col_data_file_root):
+        csv_file_name = os.path.join(con.ak_col_data_file_root, file_name)
+        col = file_name.split('.')[0].split('@')[0]
+        s_code_pre = file_name.split('.')[0].split('@')[1]
+        current_col_df = pd.read_csv(csv_file_name)
+        td_array = data_api.get_trade_day_array(from_date=current_col_df['td'].max())
+        update_cond1 = set(current_col_df.columns) <= set(s_code_dict[s_code_pre])
+        new_col_df = chached_ak_daily_col_df_dict[col][s_code_dict[s_code_pre]][td_array[1]:]
+        update_cond2 = not new_col_df.isna().any().any()
+        if update_cond1 and update_cond2:
+            new_col_df = pd.concat([current_col_df, new_col_df])
+            new_col_df.to_csv(csv_file_name)
+            logger.info('csv file {0} has been updated.'.format(csv_file_name))
+        else:
+            logger.info('csv file {0} not updated.'.format(csv_file_name))
+            if not update_cond1:
+                logger.info('set(current_col_df.columns):{0},   set(s_code_dict[s_code_pre])={1}'.format(set(current_col_df.columns), set(s_code_dict[s_code_pre])))
+            if not update_cond2:
+                logger.info('new_col_df is:')
+                logger.info(new_col_df)
+    pass
+
 def get_ak_pa_col_df(col_name, s_code_list=None):
     s_code_dict = grouped_s_code(s_code_list)
     r_df_list = []
@@ -172,6 +204,11 @@ def get_cached_ak_s_df_realtime():
         return pd.DataFrame(orjson.loads(rt_df_json))
     else:
         return None
+
+def cached_s_daily2local_col_file(period='daily'):
+    raise NotImplementedError('todo')
+    cached_ak_daily_df = get_cached_ak_s_dwm(period)
+    grouped_s_code()
 
 def get_cached_ak_s_dwm(period='daily'):
     ak_daily_keys = [x for x in cache.dc_cache.keys() if x.startswith('dc_ak@') and x.endswith('@'+period)]
