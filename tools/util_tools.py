@@ -218,6 +218,28 @@ def get_cached_ak_s_dwm(period='daily'):
 
 def get_ak_s_realtime():
     cache.dc_cache_get_value(cache_name_dict['dc_ak_s_daily_realtime'])
+
+def create_ak_indicator_table_if_not_exists(period, s_or_i, r_or_i):
+    assert period=='daily' or period=='weekly' or period=='monthly', 'period should be daily, weekly or monthly'
+    assert s_or_i=='s' or s_or_i=='i', 's_or_i should be s or i'
+    assert r_or_i=='r' or r_or_i=='i', 'r_or_i should be r or i'
+    table_name = table_name_dict['dpp_ak_{0}_indicator_{1}_{2}'.format(s_or_i, r_or_i, period)]
+    if not PGEngine.is_table_exists(table_name):
+        create_table_sql = """CREATE TABLE "{0}"(
+                                    {1} TEXT     NOT NULL,
+                                    td   TIMESTAMP   NOT NULL,
+                                    iname TEXT NOT NULL,
+                                    ivalue {2} NOT NULL,
+                                    primary key ({1}, td, iname)
+                            );
+                            SELECT create_hypertable('{0}', 'td');""".format(table_name, 's_code' if s_or_i=='s' else 'i_code', 'REAL' if r_or_i=='r' else 'SMALLINT')
+        with PGEngine.db_engine.connect() as conn:
+            conn.execute(create_table_sql)
+            logger.info('new table {0} has been created.'.format(table_name))
+        return True
+    else:
+        logger.info('table {0} has been existed.'.format(table_name))
+        return False
 # endregion dpp_s
 
 # region indicators
